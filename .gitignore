@@ -1,2 +1,7 @@
-/web-app/db.sqlite3
+*.sqlite3
+*.pyc
 /.idea
+__pycache__
+
+# dotenv
+.env
