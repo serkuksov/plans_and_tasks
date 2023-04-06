@@ -2,7 +2,6 @@ from datetime import datetime
 from django.test import TestCase
 
 from .servises.servises import add_date_delta, get_ofset_number, set_fixed_args_date, get_ofset_params_date, get_fixed_number, get_fixed_params_date, get_data_with_working_day
-from .servises.export_in_doc import *
 
 
 class ServisesTestCase(TestCase):

@@ -1,7 +1,6 @@
-import datetime
 
 from django.db import models
-from django.db.models import Q, Subquery, OuterRef
+from django.db.models import Q, Subquery
 from django.urls import reverse
 
 from accounts.models import Division, UserDeteil

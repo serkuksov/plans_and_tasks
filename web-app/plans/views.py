@@ -1,11 +1,8 @@
-import datetime
 
-from django.shortcuts import render, reverse
 from django.views import generic
-from django.http import HttpResponseRedirect, HttpResponse
-from django.views.generic.edit import DeletionMixin
+from django.http import HttpResponse
 from django.db.transaction import atomic
-from django.db.models import Case, When, IntegerField, Count, Q, FloatField
+from django.db.models import Case, When, Count
 from django.db.models.functions import Round
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
