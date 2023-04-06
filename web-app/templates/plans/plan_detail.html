@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Список планов
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="d-flex">
+        <div class="col-md-10 ">
+            <h1 >{{ plan.name }}</h1>
+        </div>
+        <div class="col-md-2 bd-example">
+            <h4>
+                {% if plan.progress < 100 %}
+                    <span class="badge rounded-pill bg-warning">В работе</span>
+                {% else %}
+                    <span class="badge rounded-pill bg-success">Выполнен</span>
+                {% endif %}
+            </h4>
+        </div>
+    </div>
+    <div class="col-md-12 mx-auto">
+        <h5>{{ plan.description }}</h5>
+        <h3>Дата выполнения: {{ plan.completion_date }}</h3>
+        <h5>Создатель: {{ plan.user_creator }}</h5>
+        <h5>Дата создания: {{ plan.date_of_creation }}</h5>
+        {% if plan.user_creator != plan.user_updater %}
+            <h5>Редактор: {{ plan.user_updater }}</h5>
+        {% endif %}
+        <h5>Дата последнего редактирования: {{ plan.date_of_update }}</h5>
+    </div>
+    <div class="progress mb-3" role="progressbar" aria-label="Success example with label" aria-valuemin="0" aria-valuemax="100">
+        <div class="w-{{ plan.progress }} progress-bar bg-success ">{{ plan.progress }}%</div>
+    </div>
+    <div class="bd-example-snippet bd-code-snippet">
+        <div class="row">
+            <div class="col-md-3">
+                <a href="{% url 'plans:create_word_doc_for_plan' pk=plan.id %}">
+                    <button type="button" class="btn btn-outline-primary">Сохранить в Word</button>
+                </a>
+                <a href="{% url 'plans:plan_update' pk=plan.id %}">
+                    <button type="button" class="btn btn-outline-success">Редактировать</button>
+                </a>
+            </div>
+            {% if is_delete_permission %}
+                <div class="col-md-1">
+                    <form method="post" action="{% url 'plans:plan_delete' pk=plan.id %}">
+                            {% csrf_token %}
+                        <input type="submit" class="btn btn-outline-danger" value="Удалить">
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-12 bd-example mx-auto">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">Задача</th>
+                    <th scope="col">Исполнитель</th>
+                    <th scope="col">Срок выполнения</th>
+                    <th scope="col">Статус</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in task_list %}
+                
+                <tr onclick="window.location.href='{{ task.get_absolute_url }}'">
+                    <td>{{ task.name }}</td>
+                    <td>{{ task.perfomer }}</td>
+                    <td class="col-md-2 bd-example mx-auto">{{ task.completion_date }}</td>
+                    <td>
+                        {% if task.is_active %}
+                            {% if task.overdue %}
+                                <span class="badge bg-danger">В работе</span>
+                            {% else %}
+                                <span class="badge bg-warning">В работе</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge bg-success">Выполнена</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

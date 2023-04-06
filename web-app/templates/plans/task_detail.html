@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Описание задачи
+{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col-md-10 mx-auto">
+        <h2 >Описание задачи:</h2>
+        <h4>{{ task.plan }}</h4>
+        <h5>{{ task.name }}</h5>
+        <p></p>
+        <p></p>
+        <hr>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-10 mx-auto">
+        <h4>Статус: 
+            {% if task.is_active %}
+                {% if task.overdue %}
+                    <span class="badge rounded-pill bg-danger">В работе</span>
+                {% else %}
+                    <span class="badge rounded-pill bg-warning">В работе</span>
+                {% endif %}
+            {% else %}
+                <span class="badge rounded-pill bg-success">Выполнена</span>
+            {% endif %}
+        </h4>
+        {% if task.is_active %}
+            <h4>Срок выполнения: {{ task.completion_date }}</h4>
+        {% endif %}    
+        <h4>Исполнитель: {{ task.perfomer }}</h4>
+        {% if task.is_active and is_assign_perfomer %}
+            <div class="col-md-4">
+                <div class="bd-example-snippet bd-code-snippet">
+                    <form action="{% url 'plans:perfomer_update' pk=task.perfomer.id %}" method="post">
+                        {% csrf_token %}
+                        {% if is_performer_user %}
+                            {{ form.performer_user }}
+                            <p></p>
+                            <div class="bd-example">
+                                <button type="submit" class="btn btn-primary">Назначить</button>
+                            </div>
+                        {% else %}
+                            <div class="bd-example">
+                                <button type="submit" class="btn btn-primary">Снять исполнителя</button>
+                            </div>
+                        {% endif %}
+                    </form>
+                </div> 
+            </div>
+        {% endif %}    
+        <p></p>
+        <hr>
+        <h5>Создатель: {{ task.user_creator }}</h5>
+        <h5>Дата создания: {{ task.date_of_creation }}</h5>
+        {% if task.user_creator != task.user_updater %}
+            <h5>Редактор: {{ task.user_updater }}</h5>
+        {% endif %}
+        <h5>Дата последнего редактирования: {{ task.date_of_update }}</h5>
+    </div>
+
+
+
+    <div class="col-md-10 mx-auto"> 
+        <div class="bd-example-snippet bd-code-snippet">
+            <form method="post">
+                {% csrf_token %}
+                <div class="bd-example">
+                    {% if is_possibility_execute %}
+                        {% if task.is_active %}
+                            <input type="submit" class="btn btn-outline-success" value="Выполнить">
+                        {% else %}
+                            <input type="submit" class="btn btn-outline-danger" value="Вернуть в работу">
+                        {% endif %}
+                    {% endif %}
+                    <a href="{{ task.plan.get_absolute_url }}">
+                        <button type="button" class="btn btn-outline-primary">Перейти к Плану</button>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div> 
+</div>
+{% endblock %}

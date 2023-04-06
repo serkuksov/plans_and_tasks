@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Список планов
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-10 ">
+        <h1 >Перечень планов находящихся в работе</h1>
+    </div>
+    <div class="col-md-12 bd-example mx-auto">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">План</th>
+                    <th scope="col">Описание</th>
+                    <th scope="col">Прогресс</th>
+                    <th scope="col">Срок выполнения</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for plan in plan_list %}
+                    <tr onclick="window.location.href='{{ plan.get_absolute_url }}'">
+                        <td>{{ plan.name }}</td>
+                        <td>{{ plan.description }}</td>
+                        <td class="col-md-2 bd-example mx-auto">
+                            <div class="progress mb-3" role="progressbar" aria-label="Success example with label" aria-valuemin="0" aria-valuemax="100">
+                                <div class="w-{{ plan.progress }} progress-bar bg-success ">{{ plan.progress }}%</div>
+                            </div>
+                        </td>
+                        <td class="col-md-2 bd-example mx-auto">{{ plan.completion_date }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
