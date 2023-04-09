@@ -15,6 +15,7 @@ class AdminPerfomer(admin.ModelAdmin):
     def get_task_and_plan(self, obj):
         return f'{obj.task_set.all()[0].plan} / {obj.task_set.all()[0]}'
 
+
 class Tasklnline(admin.StackedInline):
     model = models.Task
     extra = 0
@@ -26,7 +27,7 @@ class AdminPlan(admin.ModelAdmin):
         'name',
         'completion_date',
     )
-    inlines = [Tasklnline,]
+    inlines = [Tasklnline]
 
 
 class PatternTasklnline(admin.StackedInline):
@@ -39,7 +40,7 @@ class AdminPatternPlan(admin.ModelAdmin):
     list_display = (
         'name',
     )
-    inlines = [PatternTasklnline,]
+    inlines = [PatternTasklnline]
 
 
 @admin.register(models.PatternTask)

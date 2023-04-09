@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 from accounts.models import *
 
 
-admin.site.unregister([get_user_model(),])
+admin.site.unregister([get_user_model()])
 
 
 class UserDeteilInline(admin.StackedInline):

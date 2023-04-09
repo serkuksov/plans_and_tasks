@@ -43,14 +43,15 @@ def _get_doc_for_plan(plan_id: str) -> Document:
     hdr_cells[1].width = Inches(20)
     #формирование тела таблицы с разбивкой на группы задач
     task_groups = TaskGroup.objects.filter(patterntask__task__plan_id=plan_id).distinct()
-    number = 1
     for task_group in task_groups:
         content_cells = table.add_row().cells
         content_cells[0].paragraphs[0].style = style_table_number_1
         merge_cells = content_cells[1].merge(content_cells[3])
         merge_cells.text = str(task_group.name)
         merge_cells.paragraphs[0].style = style_header_table
-        tasks = Task.objects.filter(pattern_task__task_group=task_group).filter(plan=plan_id)
+        tasks = (Task.objects.
+                 select_related('perfomer__division').
+                 filter(pattern_task__task_group=task_group, plan=plan_id))
         for task in tasks:
             content_cells = table.add_row().cells
             content_cells[0].paragraphs[0].style = style_table_number_2
@@ -61,11 +62,10 @@ def _get_doc_for_plan(plan_id: str) -> Document:
             content_cells[3].paragraphs[0].style = style_centr_table
     return doc
 
+
 def _get_completion_date(task: Task) -> str:
+    """Форматирование даты исполнения в зависимости от статуса задачи"""
     if task.is_active:
         return str(task.completion_date.strftime('%d.%m.%Y'))
     else:
         return 'Выполнено'
-
-if __name__ == '__main__':
-    create_word_doc_for_plan()

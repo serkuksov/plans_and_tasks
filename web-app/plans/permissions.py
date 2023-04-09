@@ -1,16 +1,20 @@
-def has_delete_permission(request, obj):
-    """Проверка создателя объекта"""
+def user_can_delete_task(request, obj):
+    """Проверка прав на удаление бъекта"""
     if request.user.is_authenticated:
-        return obj.user_creator == request.user.userdeteil or request.user.is_superuser
+        return obj.user_creator == request.user.userdeteil or \
+            request.user.is_superuser
 
 
-def can_assign_perfomer(request, obj):
-    """Проверка права на назначение исполнителя"""
+def user_can_assign_performer(request, obj):
+    """Проверка права на назначение исполнителя задачи"""
     if request.user.is_authenticated:
-        return obj.division == request.user.userdeteil.division and request.user.userdeteil.is_manager or request.user.is_superuser
+        return obj.division == request.user.userdeteil.division and \
+            request.user.userdeteil.is_manager or request.user.is_superuser
 
 
-def can_possibility_execute(request, obj):
-    """Проверка права на подтверждение выполнения"""
+def user_can_execute_task(request, obj):
+    """Проверка права на подтверждение выполнения задачи исполнителем"""
     if request.user.is_authenticated:
-        return can_assign_perfomer(request, obj) or  obj.performer_user == request.user.userdeteil or request.user.is_superuser
+        return user_can_assign_performer(request, obj) or \
+            obj.performer_user == request.user.userdeteil or \
+            request.user.is_superuser

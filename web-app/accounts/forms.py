@@ -12,7 +12,8 @@ class UserDeteilChangeForm(UserChangeForm):
     last_name = forms.CharField(label='Фамилие')
     second_name = forms.CharField(label='Отчество')
     phone_number = forms.IntegerField(label='Номер телефона', 
-                                      validators=[validators.MinValueValidator(3300), validators.MaxValueValidator(3399)])
+                                      validators=[validators.MinValueValidator(3300),
+                                                  validators.MaxValueValidator(3399)])
     division = forms.ModelChoiceField(queryset=Division.objects.all(), label='Подразделение')
     is_manager = forms.BooleanField(label='Руководитель?')
 
@@ -42,7 +43,8 @@ class UserDeteilCreationForm(UserCreationForm):
     last_name = forms.CharField(label='Фамилие')
     second_name = forms.CharField(label='Отчество')
     phone_number = forms.IntegerField(label='Номер телефона', 
-                                      validators=[validators.MinValueValidator(3300), validators.MaxValueValidator(3399)])
+                                      validators=[validators.MinValueValidator(3300),
+                                                  validators.MaxValueValidator(3399)])
     division = forms.ModelChoiceField(queryset=Division.objects.all(), label='Подразделение')
     is_manager = forms.BooleanField(label='Руководитель')
 
@@ -58,8 +60,13 @@ class UserDeteilCreationForm(UserCreationForm):
 
 
 class MyAuthenticationForm(AuthenticationForm):
-    username = UsernameField(widget=forms.TextInput(attrs={'autofocus': True, 'class': 'form-control', 'id': 'floatingInput'}))
+    username = UsernameField(
+        widget=forms.TextInput(attrs={'autofocus': True,
+                                      'class': 'form-control',
+                                      'id': 'floatingInput'}))
     password = forms.CharField(
         strip=False,
-        widget=forms.PasswordInput(attrs={'autocomplete': 'current-password', 'class': 'form-control', 'id': 'floatingPassword'}),
+        widget=forms.PasswordInput(attrs={'autocomplete': 'current-password',
+                                          'class': 'form-control',
+                                          'id': 'floatingPassword'}),
     )

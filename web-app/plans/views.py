@@ -1,27 +1,29 @@
 import datetime
 
+from django.utils.decorators import method_decorator
 from django.views import generic
 from django.http import HttpResponse
 from django.db.transaction import atomic
-from django.db.models import Case, When, Count, Prefetch
+from django.db.models import Case, When, Count
 from django.db.models.functions import Round
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
+from django.views.decorators.http import require_http_methods
 
 from .models import *
 from . import forms
 from .servises import servises, export_in_doc
-from .permissions import has_delete_permission, can_assign_perfomer, can_possibility_execute
+from .permissions import user_can_delete_task, user_can_assign_performer, user_can_execute_task
 
 
 class PlanListView(generic.ListView):
-    model = Plan
+    """Отображение списка планов"""
     queryset = (Plan.objects.
                 annotate(progress=10*Round(10*Count('id', filter=Q(task__is_active=False))/Count('task__id'), 1)))
     
 
 class TaskListView(generic.ListView):
-    model = Task
+    """Отображение списка задач с возможностью сортировки"""
     queryset = (Task.objects.
                 select_related('plan', 'perfomer__division', 'perfomer__performer_user__user').
                 annotate(overdue=Case(When(completion_date__lt=datetime.datetime.now(), then=1))))
@@ -48,7 +50,8 @@ class TaskListView(generic.ListView):
         return context
 
 
-class PlanCreateView(LoginRequiredMixin, generic.CreateView):
+class PlanAndTasksCreateView(LoginRequiredMixin, generic.CreateView):
+    """Отображение формы создания плана и задач на основе шаблонов"""
     model = Plan
     form_class = forms.PlanCreateForm
     template_name = 'plans/plan_form_create.html'
@@ -78,6 +81,7 @@ class PlanCreateView(LoginRequiredMixin, generic.CreateView):
                          select_related('divisin_perfomer').
                          filter(pattern_plan=form.cleaned_data['pattern_plan']).
                          all())
+        new_tasks = []
         for pattern_task in pattern_tasks:
             completion_date_for_task = servises.get_completion_date_for_task(
                 completion_date=form.cleaned_data['completion_date'],
@@ -85,7 +89,7 @@ class PlanCreateView(LoginRequiredMixin, generic.CreateView):
                 months=pattern_task.months_ofset,
                 years=pattern_task.years_ofset,
                 )
-            Task.objects.create(
+            new_tasks.append(Task(
                 pattern_task=pattern_task,
                 plan=self.object,
                 name=pattern_task.name,
@@ -93,11 +97,13 @@ class PlanCreateView(LoginRequiredMixin, generic.CreateView):
                 perfomer=Perfomer.objects.create(division=pattern_task.divisin_perfomer),
                 user_creator=form.cleaned_data['user_creator'],
                 user_updater=form.cleaned_data['user_updater'],
-            )
+            ))
+        Task.objects.bulk_create(new_tasks)
         return response
 
 
-class PlanDetailView(generic.DetailView):
+class PlanAndTasksDetailView(generic.DetailView):
+    """Отображение плана и связанных с ним задач"""
     queryset = (Plan.objects.
                 select_related('user_creator__user', 'user_updater__user').
                 annotate(progress=10*Round(10*Count('id', filter=Q(task__is_active=False))/Count('task__id'), 1)))
@@ -109,22 +115,25 @@ class PlanDetailView(generic.DetailView):
                                 filter(plan=self.object.id).
                                 annotate(overdue=Case(When(completion_date__lt=datetime.datetime.now(), then=1))).
                                 order_by('-is_active', 'completion_date'))
-        context['is_delete_permission'] = has_delete_permission(self.request, self.object)
+        context['is_delete_permission'] = user_can_delete_task(self.request, self.object)
         return context
 
 
-class PlanDeleteView(LoginRequiredMixin, generic.DeleteView):
+@method_decorator(require_http_methods(['POST']), name='dispatch')
+class PlanAndTasksDeleteView(LoginRequiredMixin, generic.DeleteView):
+    """Удаление плана и связанных с ним задач"""
     model = Plan
     success_url = '/'
 
     def dispatch(self, request, *args, **kwargs):
         obj = self.get_object()
-        if not has_delete_permission(request, obj):
+        if not user_can_delete_task(request, obj):
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
 
-class PlanUpdateView(LoginRequiredMixin, generic.UpdateView):
+class PlanAndTasksUpdateView(LoginRequiredMixin, generic.UpdateView):
+    """Редактирование плана и связанных с ним задач"""
     model = Plan
     form_class = forms.PlanUpdateForm
     template_name = 'plans/plan_form_update.html'
@@ -173,6 +182,7 @@ class PlanUpdateView(LoginRequiredMixin, generic.UpdateView):
 
 
 class TaskDetailView(generic.DetailView, generic.View):
+    """Подробное отображение задачи"""
     model = Task
     queryset = (Task.objects.
                 select_related('user_creator__user',
@@ -185,7 +195,7 @@ class TaskDetailView(generic.DetailView, generic.View):
 
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
-        if not can_possibility_execute(self.request, self.object.perfomer):
+        if not user_can_execute_task(self.request, self.object.perfomer):
             raise PermissionDenied
         self.object.user_updater = self.request.user.userdeteil
         if self.object.is_active:
@@ -200,8 +210,8 @@ class TaskDetailView(generic.DetailView, generic.View):
         context = super().get_context_data(**kwargs)       
         context['form'] = forms.PerfomerUpdateForm(instance=self.object.perfomer)
         context['is_performer_user'] = False if self.object.perfomer.performer_user is not None else True
-        context['is_assign_perfomer'] = can_assign_perfomer(self.request, self.object.perfomer)
-        context['is_possibility_execute'] = can_possibility_execute(self.request, self.object.perfomer)
+        context['is_assign_perfomer'] = user_can_assign_performer(self.request, self.object.perfomer)
+        context['is_possibility_execute'] = user_can_execute_task(self.request, self.object.perfomer)
         return context
 
 
@@ -214,7 +224,9 @@ def create_word_doc_for_plan_view(request, *args, **kwargs):
     return response
 
 
+@method_decorator(require_http_methods(['POST']), name='dispatch')
 class PerfomerUpdateView(LoginRequiredMixin, generic.UpdateView):
+    """Назначение конкретного исполнителя (или снятие исполнителя) с задачи"""
     model = Perfomer
     queryset = Perfomer.objects.select_related('performer_user', 'division')
     form_class = forms.PerfomerUpdateForm
@@ -222,7 +234,7 @@ class PerfomerUpdateView(LoginRequiredMixin, generic.UpdateView):
 
     def form_valid(self, form):
         response = super().form_valid(form)
-        if not can_assign_perfomer(self.request, self.object):
+        if not user_can_assign_performer(self.request, self.object):
             raise PermissionDenied
         task = form.instance.task_set.first()
         task.user_updater = self.request.user.userdeteil
@@ -231,4 +243,3 @@ class PerfomerUpdateView(LoginRequiredMixin, generic.UpdateView):
 
     def get_success_url(self):
         return self.object.task_set.all()[0].get_absolute_url()
-

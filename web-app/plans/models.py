@@ -7,8 +7,17 @@ from accounts.models import Division, UserDeteil
 
 
 class Perfomer(models.Model):
-    division = models.ForeignKey(Division, on_delete=models.PROTECT, verbose_name='Подразделение исполнителя')
-    performer_user = models.ForeignKey(UserDeteil, on_delete=models.PROTECT, verbose_name='Исполнитель', null=True, blank=True)
+    """Модель исполнителей задач"""
+    division = models.ForeignKey(Division,
+                                 on_delete=models.PROTECT,
+                                 verbose_name='Подразделение исполнителя',
+                                 )
+    performer_user = models.ForeignKey(UserDeteil,
+                                       on_delete=models.PROTECT,
+                                       verbose_name='Исполнитель',
+                                       null=True,
+                                       blank=True,
+                                       )
 
     def __str__(self):
         if self.performer_user:
@@ -21,6 +30,7 @@ class Perfomer(models.Model):
 
 
 class PatternPlan(models.Model):
+    """Модель с шаблонными планами на основе которых будут формироваться рабочие планы"""
     name = models.CharField(verbose_name='Краткое имя шаблона плана', max_length=60)
     description = models.TextField(verbose_name='Имя шаблона плана')
 
@@ -33,14 +43,27 @@ class PatternPlan(models.Model):
 
 
 class Plan(models.Model):
-    pattern_plan = models.ForeignKey(PatternPlan, on_delete=models.SET_NULL, verbose_name='Шаблонный План-график', null=True)
+    """Модель с рабочими планами"""
+    pattern_plan = models.ForeignKey(PatternPlan,
+                                     on_delete=models.SET_NULL,
+                                     verbose_name='Шаблонный План-график',
+                                     null=True,
+                                     )
     name = models.CharField(verbose_name='Краткое имя плана', max_length=60)
     description = models.TextField(verbose_name='Имя плана')
     completion_date = models.DateField(verbose_name='Планируямая дата завершения')
     date_of_creation = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
     date_of_update = models.DateTimeField(auto_now=True, verbose_name='Дата изменения')
-    user_creator = models.ForeignKey(UserDeteil, on_delete=models.PROTECT, verbose_name='Создатель', related_name='plan_creator')
-    user_updater = models.ForeignKey(UserDeteil, on_delete=models.PROTECT, verbose_name='Последний редактор', related_name='plan_updater')
+    user_creator = models.ForeignKey(UserDeteil,
+                                     on_delete=models.PROTECT,
+                                     verbose_name='Создатель',
+                                     related_name='plan_creator',
+                                     )
+    user_updater = models.ForeignKey(UserDeteil,
+                                     on_delete=models.PROTECT,
+                                     verbose_name='Последний редактор',
+                                     related_name='plan_updater',
+                                     )
 
     def __str__(self):
         return self.name
@@ -59,6 +82,7 @@ class Plan(models.Model):
 
 
 class TaskGroup(models.Model):
+    """Модель с группами задач (необхоима для корректного формирования word документов)"""
     name = models.TextField(verbose_name='Имя группы')
 
     def __str__(self):
@@ -72,20 +96,40 @@ class TaskGroup(models.Model):
 
 
 class PatternTask(models.Model):
-    """Шаблон задачи"""
-    pattern_plan = models.ForeignKey(PatternPlan, on_delete=models.CASCADE, verbose_name='Шаблонный План-график')
-    task_group = models.ForeignKey(TaskGroup, on_delete=models.SET_NULL, verbose_name='Группа задач', null=True)
+    """Шаблон задачи на основе которых формеруются рабочие задачи"""
+    pattern_plan = models.ForeignKey(PatternPlan,
+                                     on_delete=models.CASCADE,
+                                     verbose_name='Шаблонный План-график',
+                                     )
+    task_group = models.ForeignKey(TaskGroup,
+                                   on_delete=models.SET_NULL,
+                                   verbose_name='Группа задач',
+                                   null=True,
+                                   )
     name = models.TextField(verbose_name='Имя шаблонной задачи')
-    divisin_perfomer = models.ForeignKey(Division, on_delete=models.PROTECT, verbose_name='Подразделение исполнителя', null=True)
-    days_ofset = models.CharField(max_length=4, verbose_name='Смещение дней', 
-                                 help_text='Введите смещение: +1 -увеличить на один, -1 уменьшить на один, 1 фиксирования цыфра', 
-                                 default='0')
-    months_ofset = models.CharField(max_length=4, verbose_name='Смещение месяцев', 
-                                   help_text='Введите смещение: +1 -увеличить на один, -1 уменьшить на один, 1 фиксирования цыфра', 
-                                   default='0')
-    years_ofset = models.CharField(max_length=4, verbose_name='Смещение лет', 
-                                  help_text='Введите смещение: +1 -увеличить на один, -1 уменьшить на один, 1 фиксирования цыфра', 
-                                  default='0')
+    divisin_perfomer = models.ForeignKey(Division,
+                                         on_delete=models.PROTECT,
+                                         verbose_name='Подразделение исполнителя',
+                                         null=True,
+                                         )
+    days_ofset = models.CharField(
+        max_length=4,
+        verbose_name='Смещение дней',
+        help_text='Введите смещение дней: +1 -увеличить на один, -1 уменьшить на один, 1 фиксирования цыфра',
+        default='0',
+    )
+    months_ofset = models.CharField(
+        max_length=4,
+        verbose_name='Смещение месяцев',
+        help_text='Введите смещение месяцев: +1 -увеличить на один, -1 уменьшить на один, 1 фиксирования цыфра',
+        default='0',
+    )
+    years_ofset = models.CharField(
+        max_length=4,
+        verbose_name='Смещение лет',
+        help_text='Введите смещение лет: +1 -увеличить на один, -1 уменьшить на один, 1 фиксирования цыфра',
+        default='0',
+    )
 
     def __str__(self):
         if len(self.name) > 150:
@@ -97,17 +141,34 @@ class PatternTask(models.Model):
         verbose_name_plural = 'Шаблоны задач'
 
 
-
 class Task(models.Model):
-    """Задачи"""
-    pattern_task = models.ForeignKey(PatternTask, on_delete=models.SET_NULL, verbose_name='Шаблонная задача', null=True, blank=True)
-    plan = models.ForeignKey(Plan, on_delete=models.CASCADE, verbose_name='План-график', null=True, blank=True)
+    """Модель с рабочими задачами"""
+    pattern_task = models.ForeignKey(PatternTask,
+                                     on_delete=models.SET_NULL,
+                                     verbose_name='Шаблонная задача',
+                                     null=True,
+                                     blank=True,
+                                     )
+    plan = models.ForeignKey(Plan,
+                             on_delete=models.CASCADE,
+                             verbose_name='План-график',
+                             null=True,
+                             blank=True,
+                             )
     name = models.TextField(verbose_name='Имя задачи')
     completion_date = models.DateField(verbose_name='Дата выполнения')
     is_active = models.BooleanField(verbose_name='Активная?', default=True)
     perfomer = models.ForeignKey(Perfomer, on_delete=models.PROTECT, verbose_name='Исполнитель')
-    user_creator = models.ForeignKey(UserDeteil, on_delete=models.PROTECT, verbose_name='Создатель', related_name='task_creator')
-    user_updater = models.ForeignKey(UserDeteil, on_delete=models.PROTECT, verbose_name='Последний редактор', related_name='task_updater')
+    user_creator = models.ForeignKey(UserDeteil,
+                                     on_delete=models.PROTECT,
+                                     verbose_name='Создатель',
+                                     related_name='task_creator',
+                                     )
+    user_updater = models.ForeignKey(UserDeteil,
+                                     on_delete=models.PROTECT,
+                                     verbose_name='Последний редактор',
+                                     related_name='task_updater',
+                                     )
     date_of_creation = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
     date_of_update = models.DateTimeField(auto_now=True, verbose_name='Дата изменения')
 
