@@ -159,6 +159,8 @@ class PlanAndTasksUpdateView(LoginRequiredMixin, generic.UpdateView):
         task_forms = forms.TaskFormSet(self.request.POST, queryset=Task.objects.filter(plan=self.object.id))
         if task_forms.is_valid():
             instances = task_forms.save(commit=False)
+            for task in task_forms.deleted_objects:
+                task.delete()
             for task in instances:
                 task.user_updater = self.request.user.userdeteil
                 task.save()

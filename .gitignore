@@ -2,6 +2,3 @@
 *.pyc
 /.idea
 __pycache__
-
-# dotenv
-.env

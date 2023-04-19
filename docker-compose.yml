@@ -1,0 +1,26 @@
+version: "3.9"
+
+services:
+  web-app:
+    build: ./web-app
+    container_name: web-app-Plans-and-Tasks
+    command: ./entrypoint.sh
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./web-app:/home/app/web
+    depends_on:
+      - db
+    env_file:
+      - .env
+
+  db:
+    image: postgres:14-alpine
+    container_name: db-Plans-and-Tasks
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - .env
+#psql -U dbuser -d dbname
+volumes:
+  postgres_data:
