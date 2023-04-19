@@ -102,7 +102,10 @@ class ExportInDocTestCase(TestCase):
         )
         self.perfomer = models.Perfomer.objects.create(division=self.division)
         self.taskgroup = models.TaskGroup.objects.create(name='taskgroup')
-        self.pattern_plan = models.PatternPlan.objects.create(name='name_pattern_plan', description='description_pattern_plan')
+        self.pattern_plan = models.PatternPlan.objects.create(
+            name='name_pattern_plan',
+            description='description_pattern_plan',
+        )
         self.pattern_task = models.PatternTask.objects.create(
             pattern_plan=self.pattern_plan,
             task_group=self.taskgroup,
@@ -131,7 +134,6 @@ class ExportInDocTestCase(TestCase):
 
     def test_create_word_doc_for_plan(self):
         doc = export_in_doc.create_word_doc_for_plan(plan_id=self.plan.id)
-        #doc.save('test.docx')
         self.assertIsInstance(doc, Composer)
 
     def test_get_composer_doc(self):
