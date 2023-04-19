@@ -5,7 +5,7 @@ from docxcompose.composer import Composer
 from plans.models import Plan, Task, TaskGroup
 
 
-def create_word_doc_for_plan(plan_id: str) -> Document:
+def create_word_doc_for_plan(plan_id: int) -> Composer:
     """Создает кончный документ План-графика в формате word получая id плана в БД"""
     start_doc = Document('./templates/doc/начало.docx')
     body_doc = _get_doc_for_plan(plan_id)
@@ -13,15 +13,16 @@ def create_word_doc_for_plan(plan_id: str) -> Document:
     return _get_composer_doc(docs=[start_doc, body_doc, end_doc])
 
 
-def _get_composer_doc(docs: list[Document,]) -> Document:
+def _get_composer_doc(docs: list[Document,]) -> Composer:
     """Собирает и отдает один документ word из списка документов"""
-    composer_doc = Composer(docs[0])
-    for doc in docs[1:]:
-        composer_doc.append(doc)
-    return composer_doc
+    if docs:
+        composer_doc = Composer(docs[0])
+        for doc in docs[1:]:
+            composer_doc.append(doc)
+        return composer_doc
 
 
-def _get_doc_for_plan(plan_id: str) -> Document:
+def _get_doc_for_plan(plan_id: int) -> Document:
     """Формирует тело плана на основе шаблона"""
     doc = Document('./templates/doc/тело_документа.docx')
     #формирование заголовка плана
