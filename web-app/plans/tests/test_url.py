@@ -18,3 +18,14 @@ class UrlsTestCase(TestCase):
         self.assertEqual(resolve(reverse('plans:create_word_doc_for_plan', args=(1,))).func,
                          views.create_word_doc_for_plan_view)
         self.assertEqual(resolve(reverse('plans:perfomer_update', args=(1,))).func.view_class, views.PerfomerUpdateView)
+
+    def test_path_urls(self):
+        self.assertEqual(reverse('plans:plan_list'), '/')
+        self.assertEqual(reverse('plans:task_list'), '/task_list/')
+        self.assertEqual(reverse('plans:plan_create'), '/plan_create/')
+        self.assertEqual(reverse('plans:plan_detail', args=(1,)), '/plan_detail/1/')
+        self.assertEqual(reverse('plans:plan_update', args=(1,)), '/plan_update/1/')
+        self.assertEqual(reverse('plans:plan_delete', args=(1,)), '/plan_delete/1/')
+        self.assertEqual(reverse('plans:task_detail', args=(1,)), '/task_detail/1/')
+        self.assertEqual(reverse('plans:create_word_doc_for_plan', args=(1,)), '/create_word_doc_for_plan/1/')
+        self.assertEqual(reverse('plans:perfomer_update', args=(1,)), '/perfomer_update/1/')

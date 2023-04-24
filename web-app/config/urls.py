@@ -24,7 +24,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(('plans.urls', 'plans'))),
     path('accounts/', include(('accounts.urls', 'accounts'))),
-    path('silk/', include('silk.urls', namespace='silk')),
+    # path('silk/', include('silk.urls', namespace='silk')),
 ]
 
 if settings.DEBUG:
