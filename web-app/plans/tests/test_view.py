@@ -203,7 +203,7 @@ class PlanAndTasksCreateViewTestCase(ViewBaseTestCase):
         response = self.client.post('/plan_create/', data=data)
         self.assertEqual(response.status_code, 302)
 
-        login = self.client.login(username='user', password='123456')
+        self.client.login(username='user', password='123456')
         with self.assertNumQueries(4):
             response = self.client.post('/plan_create/', data=data, content_type='application/json')
         self.assertEqual(response.status_code, 200)
@@ -327,16 +327,11 @@ class PlanAndTasksUpdateViewTestCase(ViewBaseTestCase):
     def test_post_plan_and_tasks_update_view(self):
         response = self.client.post('/plan_update/1/')
         self.assertEqual(response.status_code, 302)
-        #self.assertRedirects(response, '/')
 
         self.client.login(username='user_2', password='123456')
         with self.assertNumQueries(7):
             response = self.client.post('/plan_update/1/')
-        #self.assertEqual(response.status_code, 200)
-        #self.assertFormError(response, 'form', 'name', ['Обязательное поле.'])
-        #self.assertFormError(response, 'form', 'description', ['Обязательное поле.'])
-        #self.assertFormError(response, 'form', 'user_updater', ['Обязательное поле.'])
-        #self.assertFormError(response, 'form', 'completion_date', ['Обязательное поле.'])
+        self.assertEqual(response.status_code, 200)
 
         data = {
             'name': 'new_name',
@@ -387,7 +382,7 @@ class PlanAndTasksUpdateViewTestCase(ViewBaseTestCase):
             'form-0-name': 'task_new', 
         }
         with self.assertNumQueries(12):
-            response = self.client.post('/plan_update/1/', data=data)
+            self.client.post('/plan_update/1/', data=data)
         tasks = models.Task.objects.filter(plan=plan).all()
         self.assertEqual(len(tasks), 1)
 
