@@ -11,16 +11,60 @@ services:
       - ./web-app:/home/app/web
     depends_on:
       - db
+      - redis
+      - worker
     env_file:
       - .env
 
   db:
     image: postgres:14-alpine
     container_name: db-Plans-and-Tasks
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     env_file:
       - .env
-#psql -U dbuser -d dbname
+
+  redis:
+    container_name: redis-Plans-and-Tasks
+    ports:
+      - "6379:6379"
+    image: redis
+
+  worker:
+    container_name: worker-Plans-and-Tasks
+    build: ./web-app
+    command: celery -A config worker -l INFO
+    volumes:
+      - ./web-app:/home/app/web
+    depends_on:
+      - db
+      - redis
+
+  celery-beat:
+    container_name: celery-beat-Plans-and-Tasks
+    build: ./web-app
+    command: celery -A config beat -l INFO --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    volumes:
+      - ./web-app:/home/app/web
+    depends_on:
+      - db
+      - redis
+    env_file:
+      - .env
+
+  flower:
+    container_name: flower-Plans-and-Tasks
+    build: ./web-app
+    command: celery -A config flower
+    volumes:
+      - ./web-app:/home/app/web
+    depends_on:
+      - db
+      - redis
+    ports:
+      - "5555:5555"
+
 volumes:
   postgres_data:
