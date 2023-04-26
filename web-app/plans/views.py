@@ -13,7 +13,7 @@ from django.views.decorators.http import require_http_methods
 from .models import *
 from . import tasks
 from . import forms
-from .servises import servises, export_in_doc
+from .servises import offset_date, export_in_doc
 from .permissions import user_can_delete_task, user_can_assign_performer, user_can_execute_task
 
 
@@ -84,7 +84,7 @@ class PlanAndTasksCreateView(LoginRequiredMixin, generic.CreateView):
                          all())
         new_tasks = []
         for pattern_task in pattern_tasks:
-            completion_date_for_task = servises.get_completion_date_for_task(
+            completion_date_for_task = offset_date.get_completion_date_for_task(
                 completion_date=form.cleaned_data['completion_date'],
                 days=pattern_task.days_ofset,
                 months=pattern_task.months_ofset,
@@ -168,7 +168,7 @@ class PlanAndTasksUpdateView(LoginRequiredMixin, generic.UpdateView):
         if completion_date_old != completion_date_new:
             tasks = self.get_queryset_tasks()
             for task in tasks:
-                completion_date_for_task = servises.get_completion_date_for_task(
+                completion_date_for_task = offset_date.get_completion_date_for_task(
                             completion_date=completion_date_new,
                             days=task.pattern_task.days_ofset,
                             months=task.pattern_task.months_ofset,
