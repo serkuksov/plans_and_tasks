@@ -1,3 +1,4 @@
+import datetime
 
 from django.db import models
 from django.db.models import Q, Subquery
@@ -75,6 +76,14 @@ class Plan(models.Model):
         #TODO Нужно будет переделать метод удаления исполнителей
         super().delete(*args, **kwargs)
         Perfomer.objects.filter(~Q(id__in=Subquery(Task.objects.values('perfomer_id')))).all().delete()
+
+    def is_new_plan(self):
+        """Функция проверяет новый ли план"""
+        return self.date_of_creation.strftime('%Y-%m-%d %H:%M:%S') == self.date_of_update.strftime('%Y-%m-%d %H:%M:%S')
+
+    def is_new_completion_date(self, completion_date: datetime.datetime):
+        """Функция проверяет изменена ли дата выполнения плана"""
+        return completion_date != self.completion_date
 
     class Meta:
         verbose_name = 'План-график'

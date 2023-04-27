@@ -13,7 +13,7 @@ from django.views.decorators.http import require_http_methods
 from .models import *
 from . import tasks
 from . import forms
-from .servises import offset_date, export_in_doc
+from .servises import offset_date, export_in_doc, send_mail
 from .permissions import user_can_delete_task, user_can_assign_performer, user_can_execute_task
 
 
@@ -154,8 +154,7 @@ class PlanAndTasksUpdateView(LoginRequiredMixin, generic.UpdateView):
 
     @atomic
     def form_valid(self, form):
-        completion_date_old = Plan.objects.filter(id=self.object.id).first().completion_date
-        completion_date_new = form.cleaned_data['completion_date']
+        plan = Plan.objects.filter(id=self.object.id).first()
         response = super().form_valid(form)
         task_forms = forms.TaskFormSet(self.request.POST, queryset=Task.objects.filter(plan=self.object.id))
         if task_forms.is_valid():
@@ -165,17 +164,19 @@ class PlanAndTasksUpdateView(LoginRequiredMixin, generic.UpdateView):
             for task in instances:
                 task.user_updater = self.request.user.userdeteil
                 task.save()
-        if completion_date_old != completion_date_new:
-            tasks = self.get_queryset_tasks()
-            for task in tasks:
+        if plan.is_new_completion_date(completion_date=form.cleaned_data['completion_date']):
+            task_qs = self.get_queryset_tasks()
+            for task in task_qs:
                 completion_date_for_task = offset_date.get_completion_date_for_task(
-                            completion_date=completion_date_new,
+                            completion_date=form.cleaned_data['completion_date'],
                             days=task.pattern_task.days_ofset,
                             months=task.pattern_task.months_ofset,
                             years=task.pattern_task.years_ofset,
                             )
                 task.completion_date = completion_date_for_task
-            Task.objects.bulk_update(tasks, ['completion_date'])
+            Task.objects.bulk_update(task_qs, ['completion_date'])
+        if plan.is_new_plan():
+            send_mail.notify_manager_plan_creation.delay(self.object.id)
         return response
 
     def get_context_data(self, **kwargs):
