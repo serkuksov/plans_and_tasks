@@ -50,7 +50,7 @@ class Plan(models.Model):
                                      verbose_name='Шаблонный План-график',
                                      null=True,
                                      )
-    name = models.CharField(verbose_name='Краткое имя плана', max_length=60)
+    name = models.CharField(verbose_name='Краткое имя плана', max_length=100)
     description = models.TextField(verbose_name='Имя плана')
     completion_date = models.DateField(verbose_name='Планируямая дата завершения')
     date_of_creation = models.DateTimeField(auto_now_add=True, verbose_name='Дата создания')
@@ -111,15 +111,13 @@ class PatternTask(models.Model):
                                      verbose_name='Шаблонный План-график',
                                      )
     task_group = models.ForeignKey(TaskGroup,
-                                   on_delete=models.SET_NULL,
+                                   on_delete=models.PROTECT,
                                    verbose_name='Группа задач',
-                                   null=True,
                                    )
     name = models.TextField(verbose_name='Имя шаблонной задачи')
     divisin_perfomer = models.ForeignKey(Division,
                                          on_delete=models.PROTECT,
                                          verbose_name='Подразделение исполнителя',
-                                         null=True,
                                          )
     days_ofset = models.CharField(
         max_length=4,
@@ -153,16 +151,12 @@ class PatternTask(models.Model):
 class Task(models.Model):
     """Модель с рабочими задачами"""
     pattern_task = models.ForeignKey(PatternTask,
-                                     on_delete=models.SET_NULL,
+                                     on_delete=models.PROTECT,
                                      verbose_name='Шаблонная задача',
-                                     null=True,
-                                     blank=True,
                                      )
     plan = models.ForeignKey(Plan,
                              on_delete=models.CASCADE,
                              verbose_name='План-график',
-                             null=True,
-                             blank=True,
                              )
     name = models.TextField(verbose_name='Имя задачи')
     completion_date = models.DateField(verbose_name='Дата выполнения')

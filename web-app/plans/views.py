@@ -14,7 +14,8 @@ from .models import *
 from . import tasks
 from . import forms
 from .servises import offset_date, export_in_doc, send_mail
-from .permissions import user_can_delete_task, user_can_assign_performer, user_can_execute_task
+from .permissions import (user_can_delete_task, user_can_assign_performer,
+                          user_can_execute_task, user_can_update_plan_and_tasks)
 
 
 class PlanListView(generic.ListView):
@@ -72,7 +73,6 @@ class PlanAndTasksCreateView(LoginRequiredMixin, generic.CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['pattern_plans'] = PatternPlan.objects.all()
-        print(context['form'].errors)
         return context
     
     @atomic
@@ -140,10 +140,13 @@ class PlanAndTasksUpdateView(LoginRequiredMixin, generic.UpdateView):
     template_name = 'plans/plan_form_update.html'
 
     def get_queryset_tasks(self):
-        return (Task.objects.
-                select_related('perfomer__division', 'pattern_task').
-                filter(plan=self.object.id).
-                order_by('-is_active', 'completion_date'))
+        task_qs = (Task.objects.
+                    select_related('perfomer__division', 'pattern_task').
+                    filter(plan=self.object.id))
+        if user_can_update_plan_and_tasks(request=self.request, plan_obj=self.get_object()):
+            return task_qs
+        else:
+            return task_qs.filter(perfomer__division=self.request.user.userdeteil.division)
 
     def get_initial(self):
         initial = super().get_initial()
