@@ -1,6 +1,9 @@
-from django.contrib.auth import get_user_model
+import datetime
 
-from ..models import Plan
+from django.contrib.auth import get_user_model
+from django.conf import settings
+
+from ..models import Task
 from ..tasks import task_send_mail
 from config.celery import app
 
@@ -32,7 +35,7 @@ def notify_worker_assignment(task_name: str, task_url: str, email_user: str) -> 
     """Отправка уведомления по электронной почте работнику о
     назначении его исполнителем по задаче"""
     subject = 'Назначение исполнителем'
-    message = f'Вы назначены исполнителем по задаче "{task_name}".' \
+    message = f'Вы назначены исполнителем по задаче "{task_name}". ' \
               f'Ссылка на задачу: {task_url}'
     task_send_mail.apply_async(kwargs={'subject': subject,
                                        'message': message,
@@ -49,10 +52,28 @@ def notify_worker_remove_assignment(task_name: str, email_user: str) -> None:
                                        'recipient_list': [email_user]})
 
 
-def notify_task_due_date_approaching():
+@app.task()
+def notify_task_due_date_approaching(days: int) -> None:
     """Отправка уведомления по электронной почте работнику и начальнику о
-    приближении даты выполнения задачи"""
-    pass
+    приближении даты выполнения задачи за N дней"""
+    task_qs = (Task.objects.
+               filter(completion_date=datetime.datetime.now().date() + datetime.timedelta(days=days),
+                      is_active=True).
+               select_related('perfomer__performer_user__user').
+               all())
+    print(task_qs)
+    for task in task_qs:
+        print(get_email_manager_and_worker_task(task_id=task))
+        if days:
+            subject = 'Уведомление по задаче'
+            message = f'До даты исполнения задичи "{task.name}" осталось {days} дней. '
+        else:
+            subject = 'Срок исполнения по задаче'
+            message = f'Сегодня дата исполнения задичи "{task.name}". '
+        message += f'Ссылка на задачу: {get_current_host()}{task.get_absolute_url()}'
+        task_send_mail.apply_async(kwargs={'subject': subject,
+                                           'message': message,
+                                           'recipient_list': get_email_manager_and_worker_task(task_id=task)})
 
 
 def get_email_manager_plan(plan_id: int) -> list[str]:
@@ -63,6 +84,21 @@ def get_email_manager_plan(plan_id: int) -> list[str]:
                        values_list('email', flat=True)
                        )
     return list(filter(lambda x: x.strip(), email_users))
+
+
+def get_email_manager_and_worker_task(task_id: int) -> list[str]:
+    """Функция возвращает список email менеджера и исполнителя задачи"""
+    email_manager = list(get_user_model().objects.
+                       filter(userdeteil__division__perfomer__task=task_id, userdeteil__is_manager=True).
+                       distinct().
+                       values_list('email', flat=True)
+                       )
+    email_worker = list(get_user_model().objects.
+                       filter(userdeteil__perfomer__task=task_id, userdeteil__is_manager=False).
+                       distinct().
+                       values_list('email', flat=True)
+                       )
+    return list(filter(lambda x: x.strip(), email_manager + email_worker))
 
 
 def get_email_worker_plan(plan_id: int) -> list[str]:
@@ -79,3 +115,7 @@ def get_email_worker_plan(plan_id: int) -> list[str]:
     # queries = connection.queries
     # for query in queries:
     #     print(query)
+
+
+def get_current_host() -> str:
+    return f'http://{settings.ALLOWED_HOSTS[0]}:8000'

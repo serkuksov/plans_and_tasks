@@ -1,5 +1,3 @@
-import datetime
-
 from django.utils.decorators import method_decorator
 from django.views import generic
 from django.http import HttpResponse
@@ -11,12 +9,10 @@ from django.core.exceptions import PermissionDenied
 from django.views.decorators.http import require_http_methods
 
 from .models import *
-from . import tasks
 from . import forms
 from .servises import offset_date, export_in_doc, send_mail
 from .permissions import (user_can_delete_task, user_can_assign_performer,
                           user_can_execute_task, user_can_update_plan_and_tasks)
-from .servises.send_mail import get_email_worker_plan
 
 
 class PlanListView(generic.ListView):
