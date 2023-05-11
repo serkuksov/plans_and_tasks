@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 import os
+import sys
 from pathlib import Path
 
 #from celery.schedules import crontab
@@ -147,8 +148,17 @@ LOGOUT_REDIRECT_URL = 'plans:plan_list'
 LOGIN_REDIRECT_URL = 'plans:plan_list'
 
 
-CELERY_BROKER_URL = "redis://redis:6379/0"
+# CELERY_BROKER_URL = "redis://redis:6379/0"
 # CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
+if 'test' in sys.argv:
+    # Настройки для тестового окружения
+    CELERY_BROKER_URL = "redis://localhost:6379/1"
+    CELERY_RESULT_BACKEND = "redis://localhost:6379/1"
+else:
+    # Настройки для обычного окружения
+    CELERY_BROKER_URL = "redis://redis:6379/0"
+    CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
+
 CELERY_ACCEPT_CONTENT = ['application/json']
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TASK_SERIALIZER = 'json'
