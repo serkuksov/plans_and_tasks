@@ -41,6 +41,8 @@ services:
     depends_on:
       - db
       - redis
+    env_file:
+      - .env
 
   celery-beat:
     container_name: celery-beat-Plans-and-Tasks
@@ -65,6 +67,8 @@ services:
       - redis
     ports:
       - "5555:5555"
+    env_file:
+      - .env
 
 volumes:
   postgres_data:

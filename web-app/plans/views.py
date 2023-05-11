@@ -184,8 +184,10 @@ class PlanAndTasksUpdateView(LoginRequiredMixin, generic.UpdateView):
                 task.completion_date = completion_date_for_task
             Task.objects.bulk_update(task_qs, ['completion_date'])
         #TODO пока что отключена отправка уведомлений
-        # if plan.is_new_plan():
-        #     send_mail.notify_manager_plan_creation.delay(self.object.id)
+        if plan.is_new_plan():
+            plan_id = self.object.id
+            plan_url = self.request.build_absolute_uri()
+            send_mail.notify_manager_plan_creation.delay(plan_id, plan_url)
         return response
 
     def get_context_data(self, **kwargs):

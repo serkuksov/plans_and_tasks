@@ -1,25 +1,16 @@
-from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.mail import send_mail
-from django.urls import reverse
 
-from accounts.models import UserDeteil
-from plans import models
 from ..tasks import task_send_mail
 from config.celery import app
 
 
-def test_send_mail(emails: list) -> None:
-    send_mail('Тема', 'Тело письма', settings.EMAIL_HOST_USER, emails)
-
-
 @app.task()
-def notify_manager_plan_creation(plan_id: int) -> None:
+def notify_manager_plan_creation(plan_id: int, plan_url: str) -> None:
     """Отправка уведомления по электронной почте о создании нового плана
-    начальникам структурных подразделений фигурирующих в плане"""
+    начальникам структурных подразделений фигурирующим в плане"""
     subject = 'Создание нового плана'
-    message = f'Создан новый план-график по которому вам необходимо назначить исполнителей. ' \
-              f'Ссылка на план: {reverse("plans:plan_detail", kwargs={"pk": plan_id})}'
+    message = f'Создан новый план-график по которому вам необходимо выполнить редактирование задач. ' \
+              f'Ссылка на редактирование задач: {plan_url}'
     task_send_mail.apply_async(kwargs={'subject': subject,
                                        'message': message,
                                        'recipient_list': get_email_manager_plan(plan_id=plan_id)})
@@ -70,11 +61,3 @@ def get_email_manager_plan(plan_id: int) -> list[str]:
     # queries = connection.queries
     # for query in queries:
     #     print(query)
-
-
-
-if __name__ == '__main__':
-    # Тест отправки писем
-    import config.settings
-
-    test_send_mail(['ser.kuksov@mail.ru'])
