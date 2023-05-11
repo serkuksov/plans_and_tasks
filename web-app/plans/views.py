@@ -183,7 +183,6 @@ class PlanAndTasksUpdateView(LoginRequiredMixin, generic.UpdateView):
                             )
                 task.completion_date = completion_date_for_task
             Task.objects.bulk_update(task_qs, ['completion_date'])
-        #TODO пока что отключена отправка уведомлений
         if plan.is_new_plan():
             plan_id = self.object.id
             plan_url = self.request.build_absolute_uri()
