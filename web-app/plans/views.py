@@ -16,6 +16,7 @@ from . import forms
 from .servises import offset_date, export_in_doc, send_mail
 from .permissions import (user_can_delete_task, user_can_assign_performer,
                           user_can_execute_task, user_can_update_plan_and_tasks)
+from .servises.send_mail import get_email_worker_plan
 
 
 class PlanListView(generic.ListView):
@@ -185,7 +186,8 @@ class PlanAndTasksUpdateView(LoginRequiredMixin, generic.UpdateView):
                 task.completion_date = completion_date_for_task
             Task.objects.bulk_update(task_qs, ['completion_date'])
         if plan.is_new_plan():
-            send_mail.notify_manager_plan_creation(plan_id=self.object.id, plan_url=self.request.build_absolute_uri())
+            send_mail.notify_manager_plan_creation.apply_async(kwargs={'plan_id': self.object.id,
+                                                                       'plan_url': self.request.build_absolute_uri()})
         return response
 
     def get_context_data(self, **kwargs):
@@ -195,7 +197,7 @@ class PlanAndTasksUpdateView(LoginRequiredMixin, generic.UpdateView):
 
 
 class TaskDetailView(generic.DetailView, generic.View):
-    """Подробное отображение задачи"""
+    """Подробное отображение задачи и реализация функции исполнения"""
     model = Task
     queryset = (Task.objects.
                 select_related('user_creator__user',
@@ -246,12 +248,23 @@ class PerfomerUpdateView(LoginRequiredMixin, generic.UpdateView):
     template_name = 'plans/task_detail.html'
 
     def form_valid(self, form):
+        performer_user = self.get_object().performer_user
         response = super().form_valid(form)
         if not user_can_assign_performer(self.request, self.object):
             raise PermissionDenied
         task = form.instance.task_set.first()
         task.user_updater = self.request.user.userdeteil
         task.save()
+        if performer_user:
+            email_user = performer_user.user.email
+            send_mail.notify_worker_remove_assignment(task_name=task.name,
+                                                      email_user=email_user)
+        else:
+            if form.instance.performer_user:
+                email_user = form.instance.performer_user.user.email
+                send_mail.notify_worker_assignment(task_name=task.name,
+                                                   task_url=self.request.META['HTTP_REFERER'],
+                                                   email_user=email_user)
         return response
 
     def get_success_url(self):

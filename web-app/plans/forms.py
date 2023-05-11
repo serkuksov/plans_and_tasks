@@ -143,7 +143,8 @@ class PerfomerUpdateForm(forms.ModelForm):
     """Форма назначения исполнителя"""
     performer_user = forms.ModelChoiceField(
         queryset=UserDeteil.objects.none(),
-        required=False, empty_label='Выборать работника',
+        required=False,
+        empty_label='Выборать работника',
         widget=forms.Select({'class': 'form-select form-select-lg'}),
     )
 
@@ -151,7 +152,10 @@ class PerfomerUpdateForm(forms.ModelForm):
         performer = kwargs.get('instance')
         super().__init__(*args, **kwargs)
         division = performer.division
-        self.fields['performer_user'].queryset = UserDeteil.objects.filter(division=division).all()
+        self.fields['performer_user'].queryset = (UserDeteil.objects.
+                                                  select_related('user').
+                                                  filter(division=division).
+                                                  all())
 
     class Meta:
         model = Perfomer
