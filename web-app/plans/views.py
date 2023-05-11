@@ -140,9 +140,14 @@ class PlanAndTasksUpdateView(LoginRequiredMixin, generic.UpdateView):
     template_name = 'plans/plan_form_update.html'
 
     def get_queryset_tasks(self):
-        task_qs = (Task.objects.
-                    select_related('perfomer__division', 'pattern_task').
-                    filter(plan=self.object.id))
+        """Получить queryset задач текущего плана"""
+        return (Task.objects.
+                select_related('perfomer__division', 'pattern_task').
+                filter(plan=self.object.id))
+
+    def get_queryset_tasks_available_to_the_user(self):
+        """Получить queryset задач доступных для редактирования пользователем"""
+        task_qs = self.get_queryset_tasks()
         if user_can_update_plan_and_tasks(request=self.request, plan_obj=self.get_object()):
             return task_qs
         else:
@@ -178,13 +183,14 @@ class PlanAndTasksUpdateView(LoginRequiredMixin, generic.UpdateView):
                             )
                 task.completion_date = completion_date_for_task
             Task.objects.bulk_update(task_qs, ['completion_date'])
-        if plan.is_new_plan():
-            send_mail.notify_manager_plan_creation.delay(self.object.id)
+        #TODO пока что отключена отправка уведомлений
+        # if plan.is_new_plan():
+        #     send_mail.notify_manager_plan_creation.delay(self.object.id)
         return response
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['formset'] = forms.TaskFormSet(queryset=self.get_queryset_tasks())
+        context['formset'] = forms.TaskFormSet(queryset=self.get_queryset_tasks_available_to_the_user())
         return context
 
 

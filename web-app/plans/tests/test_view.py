@@ -303,7 +303,7 @@ class PlanAndTasksUpdateViewTestCase(ViewBaseTestCase):
         self.assertEqual(response.status_code, 302)
 
         self.client.login(username='user', password='123456')
-        with self.assertNumQueries(7):
+        with self.assertNumQueries(9):
             response = self.client.get('/plan_update/1/')
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'plans/plan_form_update.html')
@@ -328,7 +328,7 @@ class PlanAndTasksUpdateViewTestCase(ViewBaseTestCase):
         self.assertEqual(response.status_code, 302)
 
         self.client.login(username='user_2', password='123456')
-        with self.assertNumQueries(7):
+        with self.assertNumQueries(8):
             response = self.client.post('/plan_update/1/')
         self.assertEqual(response.status_code, 200)
 
