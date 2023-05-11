@@ -29,7 +29,7 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "test")
 DEBUG = int(os.environ.get("DEBUG", default=1))
 
 
-ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "10.103.44.52").split(" ")
+ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "127.0.0.1").split(" ")
 
 
 # Application definition
