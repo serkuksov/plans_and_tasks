@@ -1,10 +1,10 @@
 from django.contrib.auth import get_user_model
 
+from ..models import Plan
 from ..tasks import task_send_mail
 from config.celery import app
 
 
-@app.task()
 def notify_manager_plan_creation(plan_id: int, plan_url: str) -> None:
     """Отправка уведомления по электронной почте о создании нового плана
     начальникам структурных подразделений фигурирующим в плане"""
@@ -16,10 +16,14 @@ def notify_manager_plan_creation(plan_id: int, plan_url: str) -> None:
                                        'recipient_list': get_email_manager_plan(plan_id=plan_id)})
 
 
-def notify_manager_plan_delete():
+def notify_manager_plan_delete(plan_id: int, plan_description: str) -> None:
     """Отправка уведомления по электронной почте об удалении плана
     начальникам структурных подразделений фигурирующих в плане"""
-    pass
+    subject = 'Удаление плана'
+    message = f'Удален не актуалный {plan_description}.'
+    task_send_mail.apply_async(kwargs={'subject': subject,
+                                       'message': message,
+                                       'recipient_list': get_email_manager_plan(plan_id=plan_id)})
 
 
 def notify_plan_creation():

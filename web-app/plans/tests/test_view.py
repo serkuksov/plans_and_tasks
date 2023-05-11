@@ -281,7 +281,7 @@ class PlanAndTasksDeleteViewTestCase(ViewBaseTestCase):
         self.assertEqual(response.status_code, 403)
 
         self.client.login(username='user', password='123456')
-        with self.assertNumQueries(11):
+        with self.assertNumQueries(12):
             response = self.client.post('/plan_delete/1/')
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, '/')
@@ -347,7 +347,7 @@ class PlanAndTasksUpdateViewTestCase(ViewBaseTestCase):
             'form-1-name': 'test',
             'form-1-DELETE': 'on',
         }
-        with self.assertNumQueries(20):
+        with self.assertNumQueries(21):
             response = self.client.post('/plan_update/1/', data=data)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, '/plan_detail/1/')

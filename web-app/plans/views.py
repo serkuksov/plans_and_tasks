@@ -130,6 +130,7 @@ class PlanAndTasksDeleteView(LoginRequiredMixin, generic.DeleteView):
         obj = self.get_object()
         if not user_can_delete_task(request, obj):
             raise PermissionDenied
+        send_mail.notify_manager_plan_delete(plan_id=obj.id, plan_description=obj.description)
         return super().dispatch(request, *args, **kwargs)
 
 
@@ -184,9 +185,7 @@ class PlanAndTasksUpdateView(LoginRequiredMixin, generic.UpdateView):
                 task.completion_date = completion_date_for_task
             Task.objects.bulk_update(task_qs, ['completion_date'])
         if plan.is_new_plan():
-            plan_id = self.object.id
-            plan_url = self.request.build_absolute_uri()
-            send_mail.notify_manager_plan_creation.delay(plan_id, plan_url)
+            send_mail.notify_manager_plan_creation(plan_id=self.object.id, plan_url=self.request.build_absolute_uri())
         return response
 
     def get_context_data(self, **kwargs):
