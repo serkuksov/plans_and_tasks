@@ -74,7 +74,10 @@ def get_data_with_working_day(date: datetime.datetime) -> datetime.datetime:
     return date
 
 
-def get_completion_date_for_task(completion_date: datetime.datetime, days: str, months: str, years: str) -> datetime.datetime:
+def get_completion_date_for_task(completion_date: datetime.datetime,
+                                 days: str,
+                                 months: str,
+                                 years: str) -> datetime.datetime:
     """Выдает дату завершения выполнения задачи на
     основе даты завершения плана и параметров смещения"""
     completion_date_for_task = add_date_delta(date=completion_date, **get_ofset_params_date(days, months, years))

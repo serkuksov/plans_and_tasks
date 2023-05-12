@@ -61,9 +61,7 @@ def notify_task_due_date_approaching(days: int) -> None:
                       is_active=True).
                select_related('perfomer__performer_user__user').
                all())
-    print(task_qs)
     for task in task_qs:
-        print(get_email_manager_and_worker_task(task_id=task))
         if days:
             subject = 'Уведомление по задаче'
             message = f'До даты исполнения задичи "{task.name}" осталось {days} дней. '
@@ -89,15 +87,15 @@ def get_email_manager_plan(plan_id: int) -> list[str]:
 def get_email_manager_and_worker_task(task_id: int) -> list[str]:
     """Функция возвращает список email менеджера и исполнителя задачи"""
     email_manager = list(get_user_model().objects.
-                       filter(userdeteil__division__perfomer__task=task_id, userdeteil__is_manager=True).
-                       distinct().
-                       values_list('email', flat=True)
-                       )
+                         filter(userdeteil__division__perfomer__task=task_id, userdeteil__is_manager=True).
+                         distinct().
+                         values_list('email', flat=True)
+                         )
     email_worker = list(get_user_model().objects.
-                       filter(userdeteil__perfomer__task=task_id, userdeteil__is_manager=False).
-                       distinct().
-                       values_list('email', flat=True)
-                       )
+                        filter(userdeteil__perfomer__task=task_id, userdeteil__is_manager=False).
+                        distinct().
+                        values_list('email', flat=True)
+                        )
     return list(filter(lambda x: x.strip(), email_manager + email_worker))
 
 
@@ -110,12 +108,7 @@ def get_email_worker_plan(plan_id: int) -> list[str]:
                        )
     return list(filter(lambda x: x.strip(), email_users))
 
-    # from django.db import connection
-    #
-    # queries = connection.queries
-    # for query in queries:
-    #     print(query)
-
 
 def get_current_host() -> str:
+    # TODO временная функция для получения хоста
     return f'http://{settings.ALLOWED_HOSTS[0]}:8000'

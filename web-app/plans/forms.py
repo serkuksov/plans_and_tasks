@@ -113,12 +113,14 @@ class TaskFilterForm(forms.Form):
     """Форма фильтрации списка задач"""
     division = forms.ModelChoiceField(
         queryset=Division.objects.all(),
-        required=False, empty_label='Все',
+        required=False,
+        empty_label='Все',
         widget=forms.Select({'class': 'form-select form-select-lg'}),
     )
     performer_user = forms.ModelChoiceField(
         queryset=UserDeteil.objects.none(),
-        required=False, empty_label='Все',
+        required=False,
+        empty_label='Все',
         widget=forms.Select({'class': 'form-select form-select-lg'}),
     )
     is_overdue = forms.BooleanField(

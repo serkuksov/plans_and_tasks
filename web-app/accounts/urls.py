@@ -10,5 +10,3 @@ urlpatterns = [
                            authentication_form=forms.MyAuthenticationForm),
          name='login'),
 ]
-
-

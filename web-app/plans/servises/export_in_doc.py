@@ -13,7 +13,7 @@ def create_word_doc_for_plan(plan_id: int) -> Composer:
     return _get_composer_doc(docs=[start_doc, body_doc, end_doc])
 
 
-def _get_composer_doc(docs: list[Document,]) -> Composer:
+def _get_composer_doc(docs: list[Document]) -> Composer:
     """Собирает и отдает один документ word из списка документов"""
     if docs:
         composer_doc = Composer(docs[0])
@@ -25,24 +25,24 @@ def _get_composer_doc(docs: list[Document,]) -> Composer:
 def _get_doc_for_plan(plan_id: int) -> Document:
     """Формирует тело плана на основе шаблона"""
     doc = Document('./templates/doc/тело_документа.docx')
-    #формирование заголовка плана
+    # формирование заголовка плана
     header = Plan.objects.filter(id=plan_id).first().description
     doc.add_heading(header)
-    #формирование таблицы задач плана
+    # формирование таблицы задач плана
     table = doc.add_table(rows=1, cols=4)
     table.style = 'Таблица'
     style_header_table = 'Заголовок таблицы'
     style_centr_table = 'Текст таблицы (по центру)'
     style_table_number_1 = 'Нумирация1'
     style_table_number_2 = 'Нумирация2'
-    #формирование заголовков таблицы
+    # формирование заголовков таблицы
     headers_table = ('№', 'Мероприятие', 'Ответственный исполнитель', 'Срок исполнения')
     hdr_cells = table.rows[0].cells
     for index, cell in enumerate(hdr_cells):
         cell.text = headers_table[index]
         cell.paragraphs[0].style = style_header_table
     hdr_cells[1].width = Inches(20)
-    #формирование тела таблицы с разбивкой на группы задач
+    # формирование тела таблицы с разбивкой на группы задач
     task_groups = TaskGroup.objects.filter(patterntask__task__plan_id=plan_id).distinct()
     for task_group in task_groups:
         content_cells = table.add_row().cells
