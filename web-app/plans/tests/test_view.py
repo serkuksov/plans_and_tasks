@@ -1,8 +1,10 @@
+import tempfile
 from datetime import datetime
 from datetime import timedelta
 
 from django.test import TestCase
 from django.contrib.auth import get_user_model
+from docx import Document
 
 from .. import models
 from accounts.models import UserDeteil, Division
@@ -452,3 +454,21 @@ class TaskDetailViewTestCase(ViewBaseTestCase):
         response = self.client.post('/task_detail/1/')
         self.assertEqual(response.status_code, 403)
         self.assertEqual(models.Task.objects.filter(id=1).first().is_active, True)
+
+
+class CreateWordDocForPlanViewTestCase(ViewBaseTestCase):
+    """Тестирование отоброжения для формирования ворд файла"""
+    def test_create_word_doc_for_plan_view(self):
+        with self.assertNumQueries(3):
+            response = self.client.get('/create_word_doc_for_plan/1/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/msword')
+        self.assertEqual(response['Content-Disposition'],
+                         f'attachment; filename="Plan_N1_ot_{datetime.now().date()}.doc"')
+        self.assertIn(b'PK\x03\x04\x14\x00\x08\x00\x08\x00', response.content)
+        with tempfile.NamedTemporaryFile(suffix='.doc', delete=True) as temp_file:
+            temp_file.write(response.content)
+            temp_file_path = temp_file.name
+            doc = Document(temp_file_path)
+            text_paragraphs_doc = [p.text for p in doc.paragraphs]
+            self.assertIn('plan_description_1', text_paragraphs_doc)

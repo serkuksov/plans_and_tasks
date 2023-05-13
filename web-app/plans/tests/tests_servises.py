@@ -152,7 +152,7 @@ class ExportInDocTestCase(TestCase):
         doc = export_in_doc._get_doc_for_plan(self.plan.id)
         test_doc = Document('./plans/tests/files/test_doc_for_plan.docx')
         text_paragraphs_doc = [p.text for p in doc.paragraphs]
-        text_paragraphs_test_doc = [p.text for p in doc.paragraphs]
+        text_paragraphs_test_doc = [p.text for p in test_doc.paragraphs]
         text_tables_doc = []
         for table in doc.tables:
             for row in table.rows:
