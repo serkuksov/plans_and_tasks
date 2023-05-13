@@ -1,3 +1,6 @@
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
 from django.views import generic
 from django.http import HttpResponse
@@ -205,6 +208,8 @@ class TaskDetailView(generic.DetailView, generic.View):
                 order_by('-is_active', 'completion_date'))
 
     def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return redirect('%s?next=%s' % (settings.LOGIN_URL, request.path))
         self.object = self.get_object()
         if not user_can_execute_task(self.request, self.object.perfomer):
             raise PermissionDenied

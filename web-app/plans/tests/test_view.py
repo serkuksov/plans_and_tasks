@@ -26,6 +26,7 @@ class ViewBaseTestCase(TestCase):
             second_name='second_name',
             phone_number=3398,
             division=self.division_2,
+            is_manager=True,
         )
         self.plan_1 = models.Plan.objects.create(
             name='plan_name_1',
@@ -387,3 +388,67 @@ class PlanAndTasksUpdateViewTestCase(ViewBaseTestCase):
 
         self.assertEqual(tasks[0].name, 'task_new')
         self.assertEqual(tasks[0].completion_date, datetime(2023, 2, 1).date())
+
+
+class TaskDetailViewTestCase(ViewBaseTestCase):
+    """Тестирование детального отоброжения задач"""
+    def test_get_context_data(self):
+        with self.assertNumQueries(1):
+            response = self.client.get('/task_detail/1/')
+        self.assertEqual(response.status_code, 200)
+
+        self.assertIn('form', response.context)
+        self.assertIn('is_performer_user', response.context)
+        self.assertIn('is_assign_perfomer', response.context)
+        self.assertIn('is_possibility_execute', response.context)
+
+        form = response.context['form']
+        self.assertEqual(form.instance, self.perfomer_1)
+
+        self.assertFalse(response.context['is_performer_user'])
+        self.assertIsNone(response.context['is_assign_perfomer'])
+        self.assertIsNone(response.context['is_possibility_execute'])
+
+        self.client.login(username='user', password='123456')
+        with self.assertNumQueries(5):
+            response = self.client.get('/task_detail/1/')
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'plans/task_detail.html')
+
+        self.assertFalse(response.context['is_performer_user'])
+        self.assertFalse(response.context['is_assign_perfomer'])
+        self.assertTrue(response.context['is_possibility_execute'])
+
+        self.perfomer_1.performer_user = None
+        self.perfomer_1.save()
+        self.task_1.is_active = False
+        self.task_1.save()
+        response = self.client.get('/task_detail/1/')
+        self.assertTrue(response.context['is_performer_user'])
+        self.assertFalse(response.context['is_possibility_execute'])
+
+        self.client.login(username='user_2', password='123456')
+        response = self.client.get('/task_detail/1/')
+        self.assertFalse(response.context['is_possibility_execute'])
+
+        response = self.client.get('/task_detail/2/')
+        self.assertTrue(response.context['is_performer_user'])
+        self.assertTrue(response.context['is_assign_perfomer'])
+        self.assertTrue(response.context['is_possibility_execute'])
+
+    def test_post(self):
+        response = self.client.post('/task_detail/1/')
+        self.assertEqual(response.status_code, 302)
+
+        self.client.login(username='user', password='123456')
+        with self.assertNumQueries(6):
+            response = self.client.post('/task_detail/1/')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(models.Task.objects.filter(id=1).first().is_active, False)
+        self.client.post('/task_detail/1/')
+        self.assertEqual(models.Task.objects.filter(id=1).first().is_active, True)
+
+        self.client.login(username='user_2', password='123456')
+        response = self.client.post('/task_detail/1/')
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(models.Task.objects.filter(id=1).first().is_active, True)
