@@ -474,3 +474,45 @@ class CreateWordDocForPlanViewTestCase(ViewBaseTestCase):
             doc = Document(temp_file_path)
             text_paragraphs_doc = [p.text for p in doc.paragraphs]
             self.assertIn('plan_description_1', text_paragraphs_doc)
+
+
+class PerfomerUpdateViewTestCase(ViewBaseTestCase):
+    """Тестирование назначения исполнителя"""
+    def test_post(self):
+        response = self.client.post('/perfomer_update/1/')
+        self.assertEqual(response.status_code, 302)
+
+        self.client.login(username='user', password='123456')
+        data = {
+            'performer_user': '',
+        }
+        with self.assertNumQueries(8):
+            response = self.client.post('/perfomer_update/1/', data=data)
+        self.assertEqual(response.status_code, 403)
+
+        self.client.login(username='user_2', password='123456')
+        data = {
+            'performer_user': 1,
+        }
+        with self.assertNumQueries(4):
+            response = self.client.post('/perfomer_update/2/', data=data)
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(models.Perfomer.objects.filter(id=2).first().performer_user, None)
+
+        data = {
+            'performer_user': '2',
+        }
+        with self.assertNumQueries(12):
+            response = self.client.post('/perfomer_update/2/', data=data)
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, '/task_detail/2/')
+        self.assertEqual(models.Perfomer.objects.filter(id=2).first().performer_user, self.user_2.userdeteil)
+
+        data = {
+            'performer_user': '',
+        }
+        with self.assertNumQueries(11):
+            response = self.client.post('/perfomer_update/2/', data=data)
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, '/task_detail/2/')
+        self.assertEqual(models.Perfomer.objects.filter(id=2).first().performer_user, None)

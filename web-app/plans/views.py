@@ -248,6 +248,9 @@ class PerfomerUpdateView(LoginRequiredMixin, generic.UpdateView):
     form_class = forms.PerfomerUpdateForm
     template_name = 'plans/task_detail.html'
 
+    def form_invalid(self, form):
+        raise PermissionDenied
+
     def form_valid(self, form):
         performer_user = self.get_object().performer_user
         response = super().form_valid(form)
@@ -264,7 +267,7 @@ class PerfomerUpdateView(LoginRequiredMixin, generic.UpdateView):
             if form.instance.performer_user:
                 email_user = form.instance.performer_user.user.email
                 send_mail.notify_worker_assignment(task_name=task.name,
-                                                   task_url=self.request.META['HTTP_REFERER'],
+                                                   task_url=self.request.META.get('HTTP_REFERER'),
                                                    email_user=email_user)
         return response
 
