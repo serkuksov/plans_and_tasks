@@ -25,7 +25,7 @@ class ViewBaseTestCase(TestCase):
         )
         UserDeteil.objects.create(
             user=self.user_2,
-            second_name='second_name',
+            second_name='second_name_2',
             phone_number=3398,
             division=self.division_2,
             is_manager=True,
@@ -72,7 +72,7 @@ class ViewBaseTestCase(TestCase):
             completion_date=datetime.now() + timedelta(days=1),
             perfomer=self.perfomer_1,
             user_creator=self.user.userdeteil,
-            user_updater=self.user.userdeteil,
+            user_updater=self.user_2.userdeteil,
             is_active=True,
         )
         self.task_2 = models.Task.objects.create(
@@ -447,6 +447,7 @@ class TaskDetailViewTestCase(ViewBaseTestCase):
             response = self.client.post('/task_detail/1/')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(models.Task.objects.filter(id=1).first().is_active, False)
+        self.assertEqual(models.Task.objects.filter(id=1).first().user_updater, self.user.userdeteil)
         self.client.post('/task_detail/1/')
         self.assertEqual(models.Task.objects.filter(id=1).first().is_active, True)
 
@@ -465,6 +466,7 @@ class CreateWordDocForPlanViewTestCase(ViewBaseTestCase):
         self.assertEqual(response['Content-Type'], 'application/msword')
         self.assertEqual(response['Content-Disposition'],
                          f'attachment; filename="Plan_N1_ot_{datetime.now().date()}.doc"')
+        # Проверка сигнатуры формата .doc
         self.assertIn(b'PK\x03\x04\x14\x00\x08\x00\x08\x00', response.content)
         with tempfile.NamedTemporaryFile(suffix='.doc', delete=True) as temp_file:
             temp_file.write(response.content)
