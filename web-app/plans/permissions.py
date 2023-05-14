@@ -22,7 +22,6 @@ def user_can_execute_task(request, obj):
 
 def user_can_update_plan_and_tasks(request, plan_obj):
     """Проверка прав на редактирование плана и задач"""
-    #TODO нужно дополнить
     if request.user.is_authenticated:
         return plan_obj.user_creator == request.user.userdeteil or \
             request.user.is_superuser
