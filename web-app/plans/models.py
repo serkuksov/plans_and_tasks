@@ -73,11 +73,6 @@ class Plan(models.Model):
     def get_absolute_url(self):
         return reverse('plans:plan_detail', kwargs={'pk': self.pk})
 
-    # def delete(self, *args, **kwargs):
-    #     #TODO Нужно будет переделать метод удаления исполнителей
-    #     super().delete(*args, **kwargs)
-    #     Perfomer.objects.filter(~Q(id__in=Subquery(Task.objects.values('perfomer_id')))).all().delete()
-
     def is_new_plan(self):
         """Функция проверяет новый ли план"""
         return self.date_of_creation.strftime('%Y-%m-%d %H:%M:%S') == self.date_of_update.strftime('%Y-%m-%d %H:%M:%S')
