@@ -1,11 +1,10 @@
 from django.conf import settings
-from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
 from django.views import generic
 from django.http import HttpResponse
 from django.db.transaction import atomic
-from django.db.models import Case, When, Count
+from django.db.models import Case, When, Count, Q
 from django.db.models.functions import Round
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied

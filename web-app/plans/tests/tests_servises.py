@@ -130,7 +130,6 @@ class ExportInDocTestCase(TestCase):
         self.perfomer_1 = models.Perfomer.objects.create(task=self.task_1, division=self.division)
         self.perfomer_2 = models.Perfomer.objects.create(task=self.task_2, division=self.division)
 
-
     def test_create_word_doc_for_plan(self):
         doc = export_in_doc.create_word_doc_for_plan(plan_id=self.plan.id)
         self.assertIsInstance(doc, Composer)

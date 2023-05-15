@@ -97,6 +97,7 @@ class ViewBaseTestCase(TestCase):
         self.perfomer_3 = models.Perfomer.objects.create(task=self.task_3,
                                                          division=self.division_1)
 
+
 class PlanListViewTestCase(ViewBaseTestCase):
     """Тестирование отображения списка планов"""
     def test_plan_list_view(self):

@@ -110,5 +110,4 @@ def get_email_worker_plan(plan_id: int) -> list[str]:
 
 
 def get_current_host() -> str:
-    # TODO временная функция для получения хоста
     return f'http://{settings.ALLOWED_HOSTS[0]}:8000'
