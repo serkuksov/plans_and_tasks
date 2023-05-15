@@ -9,6 +9,7 @@ from accounts.models import Division, UserDeteil
 
 class Perfomer(models.Model):
     """Модель исполнителей задач"""
+    task = models.OneToOneField('Task', on_delete=models.CASCADE, verbose_name='Исполнитель')
     division = models.ForeignKey(Division,
                                  on_delete=models.PROTECT,
                                  verbose_name='Подразделение исполнителя',
@@ -72,10 +73,10 @@ class Plan(models.Model):
     def get_absolute_url(self):
         return reverse('plans:plan_detail', kwargs={'pk': self.pk})
 
-    def delete(self, *args, **kwargs):
-        #TODO Нужно будет переделать метод удаления исполнителей
-        super().delete(*args, **kwargs)
-        Perfomer.objects.filter(~Q(id__in=Subquery(Task.objects.values('perfomer_id')))).all().delete()
+    # def delete(self, *args, **kwargs):
+    #     #TODO Нужно будет переделать метод удаления исполнителей
+    #     super().delete(*args, **kwargs)
+    #     Perfomer.objects.filter(~Q(id__in=Subquery(Task.objects.values('perfomer_id')))).all().delete()
 
     def is_new_plan(self):
         """Функция проверяет новый ли план"""
@@ -161,7 +162,8 @@ class Task(models.Model):
     name = models.TextField(verbose_name='Имя задачи')
     completion_date = models.DateField(verbose_name='Дата выполнения')
     is_active = models.BooleanField(verbose_name='Активная?', default=True)
-    perfomer = models.ForeignKey(Perfomer, on_delete=models.PROTECT, verbose_name='Исполнитель')
+    # perfomer = models.ForeignKey(Perfomer, on_delete=models.PROTECT, verbose_name='Исполнитель')
+
     user_creator = models.ForeignKey(UserDeteil,
                                      on_delete=models.PROTECT,
                                      verbose_name='Создатель',
@@ -182,11 +184,6 @@ class Task(models.Model):
 
     def get_absolute_url(self):
         return reverse('plans:task_detail', kwargs={'pk': self.id})
-
-    def delete(self, *args, **kwargs):
-        #TODO Нужно будет переделать метод удаления исполнителей
-        super().delete(*args, **kwargs)
-        Perfomer.objects.filter(~Q(id__in=Subquery(Task.objects.values('perfomer_id')))).all().delete()
 
     class Meta:
         verbose_name = 'Задача'

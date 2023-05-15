@@ -44,9 +44,6 @@ class ViewBaseTestCase(TestCase):
             user_creator=self.user.userdeteil,
             user_updater=self.user.userdeteil,
         )
-        self.perfomer_1 = models.Perfomer.objects.create(division=self.division_1, performer_user=self.user.userdeteil)
-        self.perfomer_2 = models.Perfomer.objects.create(division=self.division_2)
-        self.perfomer_3 = models.Perfomer.objects.create(division=self.division_1)
         self.taskgroup = models.TaskGroup.objects.create(name='taskgroup')
         self.pattern_plan = models.PatternPlan.objects.create(
             name='name_pattern_plan',
@@ -70,7 +67,6 @@ class ViewBaseTestCase(TestCase):
             plan=self.plan_1,
             name='task_1_name',
             completion_date=datetime.now() + timedelta(days=1),
-            perfomer=self.perfomer_1,
             user_creator=self.user.userdeteil,
             user_updater=self.user_2.userdeteil,
             is_active=True,
@@ -80,7 +76,6 @@ class ViewBaseTestCase(TestCase):
             plan=self.plan_1,
             name='task_2_name',
             completion_date=datetime(day=1, month=3, year=2023),
-            perfomer=self.perfomer_2,
             user_creator=self.user.userdeteil,
             user_updater=self.user.userdeteil,
             is_active=False,
@@ -90,12 +85,17 @@ class ViewBaseTestCase(TestCase):
             plan=self.plan_2,
             name='task_3_name',
             completion_date=datetime(day=1, month=2, year=2023),
-            perfomer=self.perfomer_3,
             user_creator=self.user.userdeteil,
             user_updater=self.user.userdeteil,
             is_active=True,
         )
-
+        self.perfomer_1 = models.Perfomer.objects.create(task=self.task_1,
+                                                         division=self.division_1,
+                                                         performer_user=self.user.userdeteil)
+        self.perfomer_2 = models.Perfomer.objects.create(task=self.task_2,
+                                                         division=self.division_2)
+        self.perfomer_3 = models.Perfomer.objects.create(task=self.task_3,
+                                                         division=self.division_1)
 
 class PlanListViewTestCase(ViewBaseTestCase):
     """Тестирование отображения списка планов"""
@@ -220,7 +220,7 @@ class PlanAndTasksCreateViewTestCase(ViewBaseTestCase):
             'pattern_plan': 1,
             'completion_date': '2023-01-01',
         }
-        with self.assertNumQueries(16):
+        with self.assertNumQueries(15):
             response = self.client.post('/plan_create/', data=data)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, '/plan_update/3/')
@@ -284,7 +284,7 @@ class PlanAndTasksDeleteViewTestCase(ViewBaseTestCase):
         self.assertEqual(response.status_code, 403)
 
         self.client.login(username='user', password='123456')
-        with self.assertNumQueries(13):
+        with self.assertNumQueries(12):
             response = self.client.post('/plan_delete/1/')
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, '/')
@@ -350,7 +350,7 @@ class PlanAndTasksUpdateViewTestCase(ViewBaseTestCase):
             'form-1-name': 'test',
             'form-1-DELETE': 'on',
         }
-        with self.assertNumQueries(20):
+        with self.assertNumQueries(18):
             response = self.client.post('/plan_update/1/', data=data)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, '/plan_detail/1/')
@@ -502,7 +502,7 @@ class PerfomerUpdateViewTestCase(ViewBaseTestCase):
         data = {
             'performer_user': '2',
         }
-        with self.assertNumQueries(12):
+        with self.assertNumQueries(11):
             response = self.client.post('/perfomer_update/2/', data=data)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, '/task_detail/2/')
@@ -511,7 +511,7 @@ class PerfomerUpdateViewTestCase(ViewBaseTestCase):
         data = {
             'performer_user': '',
         }
-        with self.assertNumQueries(11):
+        with self.assertNumQueries(10):
             response = self.client.post('/perfomer_update/2/', data=data)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, '/task_detail/2/')

@@ -53,6 +53,7 @@ services:
     depends_on:
       - db
       - redis
+      - web-app
     env_file:
       - .env
 

@@ -83,6 +83,7 @@ class PlanAndTasksCreateView(LoginRequiredMixin, generic.CreateView):
                          filter(pattern_plan=form.cleaned_data['pattern_plan']).
                          all())
         new_tasks = []
+        new_perfomers = []
         for pattern_task in pattern_tasks:
             completion_date_for_task = offset_date.get_completion_date_for_task(
                 completion_date=form.cleaned_data['completion_date'],
@@ -90,16 +91,22 @@ class PlanAndTasksCreateView(LoginRequiredMixin, generic.CreateView):
                 months=pattern_task.months_ofset,
                 years=pattern_task.years_ofset,
                 )
-            new_tasks.append(Task(
+            task = Task(
                 pattern_task=pattern_task,
                 plan=self.object,
                 name=pattern_task.name,
                 completion_date=completion_date_for_task,
-                perfomer=Perfomer.objects.create(division=pattern_task.divisin_perfomer),
                 user_creator=form.cleaned_data['user_creator'],
                 user_updater=form.cleaned_data['user_updater'],
-            ))
+            )
+            perfomer = Perfomer(
+                task=task,
+                division=pattern_task.divisin_perfomer,
+            )
+            new_tasks.append(task)
+            new_perfomers.append(perfomer)
         Task.objects.bulk_create(new_tasks)
+        Perfomer.objects.bulk_create(new_perfomers)
         return response
 
 
@@ -256,7 +263,7 @@ class PerfomerUpdateView(LoginRequiredMixin, generic.UpdateView):
         response = super().form_valid(form)
         if not user_can_assign_performer(self.request, self.object):
             raise PermissionDenied
-        task = form.instance.task_set.first()
+        task = form.instance.task
         task.user_updater = self.request.user.userdeteil
         task.save()
         if performer_user:
@@ -272,4 +279,4 @@ class PerfomerUpdateView(LoginRequiredMixin, generic.UpdateView):
         return response
 
     def get_success_url(self):
-        return self.object.task_set.all()[0].get_absolute_url()
+        return self.object.task.get_absolute_url()

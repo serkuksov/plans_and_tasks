@@ -24,8 +24,8 @@ class Division(models.Model):
 class UserDeteil(models.Model):
     """Дополнение модели пользователя"""
     user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
-    second_name = models.CharField(max_length=20, verbose_name='Отчество', blank=True)
-    phone_number = models.PositiveSmallIntegerField(verbose_name='Номер телефона', blank=True,
+    second_name = models.CharField(max_length=20, verbose_name='Отчество')
+    phone_number = models.PositiveSmallIntegerField(verbose_name='Номер телефона',
                                                     unique=True,
                                                     validators=[validators.MinValueValidator(3200), 
                                                                 validators.MaxValueValidator(3399)])

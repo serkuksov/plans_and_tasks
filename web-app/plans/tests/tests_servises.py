@@ -99,7 +99,6 @@ class ExportInDocTestCase(TestCase):
             user_creator=self.user.userdeteil,
             user_updater=self.user.userdeteil,
         )
-        self.perfomer = models.Perfomer.objects.create(division=self.division)
         self.taskgroup = models.TaskGroup.objects.create(name='taskgroup')
         self.pattern_plan = models.PatternPlan.objects.create(
             name='name_pattern_plan',
@@ -116,7 +115,6 @@ class ExportInDocTestCase(TestCase):
             plan=self.plan,
             name='task_1_name',
             completion_date=datetime(day=1, month=1, year=2023),
-            perfomer=self.perfomer,
             user_creator=self.user.userdeteil,
             user_updater=self.user.userdeteil,
         )
@@ -125,11 +123,13 @@ class ExportInDocTestCase(TestCase):
             plan=self.plan,
             name='task_2_name',
             completion_date=datetime(day=1, month=1, year=2023),
-            perfomer=self.perfomer,
             user_creator=self.user.userdeteil,
             user_updater=self.user.userdeteil,
             is_active=False,
         )
+        self.perfomer_1 = models.Perfomer.objects.create(task=self.task_1, division=self.division)
+        self.perfomer_2 = models.Perfomer.objects.create(task=self.task_2, division=self.division)
+
 
     def test_create_word_doc_for_plan(self):
         doc = export_in_doc.create_word_doc_for_plan(plan_id=self.plan.id)

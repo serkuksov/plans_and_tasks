@@ -13,7 +13,7 @@ class AdminPerfomer(admin.ModelAdmin):
 
     @admin.display(description='План/Задача')
     def get_task_and_plan(self, obj):
-        return f'{obj.task_set.all()[0].plan} / {obj.task_set.all()[0]}'
+        return f'{obj.task.plan} / {obj.task}'
 
 
 class Tasklnline(admin.StackedInline):
