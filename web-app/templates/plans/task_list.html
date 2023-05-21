@@ -19,12 +19,12 @@
                     <h5>Подразделение</h5>
                     {{ form.division }}
                 </div>
-                {% if 'division' in request.GET %}
+{#                {% if 'division' in request.GET %}#}
                     <div class="col-md-2">
                         <h5>Исполнитель</h5>
                         {{ form.performer_user }}
                     </div>
-                {% endif %}
+{#                {% endif %}#}
                 <div class="col-md-2">
                     <h5>В работе?</h5>
                     {{ form.is_active }}
@@ -80,4 +80,36 @@
         </table>
     </div>
 </div>
+<script>
+  // Скрипт JavaScript
+  const divisionSelect = document.getElementById('id_division');
+  const userSelect = document.getElementById('id_performer_user');
+
+  divisionSelect.addEventListener('change', function() {
+    const selectedDivisionId = this.value;
+
+    // Выполняем AJAX-запрос к вашему API с передачей выбранного идентификатора подразделения
+    // и обновляем второй выпадающий список с полученными данными пользователей
+    fetch(`/api/v1/user/?division=${selectedDivisionId}`)
+      .then(response => response.json())
+      .then(data => {
+        // Очищаем текущий список пользователей
+        userSelect.innerHTML = '';
+
+        // Добавляем опцию "Все" второго выпадающего списка
+        const allOption = document.createElement('option');
+        allOption.value = '';
+        allOption.textContent = 'Все';
+        userSelect.appendChild(allOption)
+
+        // Добавляем опции для каждого пользователя второго выпадающего списка
+        data.forEach(user => {
+          const option = document.createElement('option');
+          option.value = user.id;
+          option.textContent = user.full_name;
+          userSelect.appendChild(option);
+        });
+      });
+  });
+</script>
 {% endblock %}
