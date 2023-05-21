@@ -22,6 +22,7 @@ from django.conf import settings
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(('plans.urls', 'plans'))),
+    path('api/v1/', include(('API.urls', 'API'))),
     path('accounts/', include(('accounts.urls', 'accounts'))),
     # path('silk/', include('silk.urls', namespace='silk')),
 ]
