@@ -238,6 +238,7 @@ class TaskDetailView(generic.DetailView, generic.View):
 
 
 def create_word_doc_for_plan_view(request, *args, **kwargs):
+    """Формирование и отправка файла плана на основе шаблона"""
     doc = export_in_doc.create_word_doc_for_plan(plan_id=kwargs['pk'])
     name_doc = f'Plan_N{kwargs["pk"]}_ot_{datetime.datetime.now().date()}'
     response = HttpResponse(content_type='application/msword')
