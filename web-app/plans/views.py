@@ -20,7 +20,13 @@ from .permissions import (user_can_delete_task, user_can_assign_performer,
 class PlanListView(generic.ListView):
     """Отображение списка планов"""
     queryset = (Plan.objects.
-                annotate(progress=10*Round(10*Count('id', filter=Q(task__is_active=False))/Count('task__id'), 1)))
+                annotate(progress=10*Round(10*Count('id', filter=Q(task__is_active=False))/Count('task__id'), 1)).
+                defer(
+                    'date_of_creation',
+                    'date_of_update',
+                    'user_creator',
+                    'user_updater',
+                ))
     
 
 class TaskListView(generic.ListView):
