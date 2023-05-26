@@ -148,28 +148,28 @@ class TaskListViewTestCase(ViewBaseTestCase):
         self.assertEqual(object_list[0].name, 'task_3_name')
         self.assertEqual(object_list[1].name, 'task_1_name')
 
-        with self.assertNumQueries(4):
+        with self.assertNumQueries(3):
             response = self.client.get('/task_list/?division=2')
         object_list = response.context['object_list']
         self.assertEqual(len(object_list), 1)
         
         self.assertEqual(object_list[0].name, 'task_2_name')
 
-        with self.assertNumQueries(5):
+        with self.assertNumQueries(2):
             response = self.client.get('/task_list/?division=1&performer_user=1')
         object_list = response.context['object_list']
         self.assertEqual(len(object_list), 1)
 
         self.assertEqual(object_list[0].name, 'task_1_name')
 
-        with self.assertNumQueries(2):
+        with self.assertNumQueries(1):
             response = self.client.get('/task_list/?is_overdue=1')
         object_list = response.context['object_list']
         self.assertEqual(len(object_list), 1)
 
         self.assertEqual(object_list[0].name, 'task_3_name')
 
-        with self.assertNumQueries(2):
+        with self.assertNumQueries(1):
             response = self.client.get('/task_list/?is_active=1')
         object_list = response.context['object_list']
         self.assertEqual(len(object_list), 2)
@@ -221,7 +221,7 @@ class PlanAndTasksCreateViewTestCase(ViewBaseTestCase):
             'pattern_plan': 1,
             'completion_date': '2023-01-01',
         }
-        with self.assertNumQueries(15):
+        with self.assertNumQueries(11):
             response = self.client.post('/plan_create/', data=data)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, '/plan_update/3/')
@@ -285,7 +285,7 @@ class PlanAndTasksDeleteViewTestCase(ViewBaseTestCase):
         self.assertEqual(response.status_code, 403)
 
         self.client.login(username='user', password='123456')
-        with self.assertNumQueries(12):
+        with self.assertNumQueries(10):
             response = self.client.post('/plan_delete/1/')
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, '/')
@@ -307,7 +307,7 @@ class PlanAndTasksUpdateViewTestCase(ViewBaseTestCase):
         self.assertEqual(response.status_code, 302)
 
         self.client.login(username='user', password='123456')
-        with self.assertNumQueries(9):
+        with self.assertNumQueries(6):
             response = self.client.get('/plan_update/1/')
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'plans/plan_form_update.html')
@@ -332,7 +332,7 @@ class PlanAndTasksUpdateViewTestCase(ViewBaseTestCase):
         self.assertEqual(response.status_code, 302)
 
         self.client.login(username='user_2', password='123456')
-        with self.assertNumQueries(8):
+        with self.assertNumQueries(7):
             response = self.client.post('/plan_update/1/')
         self.assertEqual(response.status_code, 200)
 
@@ -351,7 +351,7 @@ class PlanAndTasksUpdateViewTestCase(ViewBaseTestCase):
             'form-1-name': 'test',
             'form-1-DELETE': 'on',
         }
-        with self.assertNumQueries(18):
+        with self.assertNumQueries(15):
             response = self.client.post('/plan_update/1/', data=data)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, '/plan_detail/1/')
@@ -384,7 +384,7 @@ class PlanAndTasksUpdateViewTestCase(ViewBaseTestCase):
             'form-0-id': 1,
             'form-0-name': 'task_new',
         }
-        with self.assertNumQueries(12):
+        with self.assertNumQueries(7):
             self.client.post('/plan_update/1/', data=data)
         tasks = models.Task.objects.filter(plan=plan).all()
         self.assertEqual(len(tasks), 1)
@@ -487,7 +487,7 @@ class PerfomerUpdateViewTestCase(ViewBaseTestCase):
         data = {
             'performer_user': '',
         }
-        with self.assertNumQueries(8):
+        with self.assertNumQueries(7):
             response = self.client.post('/perfomer_update/1/', data=data)
         self.assertEqual(response.status_code, 403)
 
@@ -503,7 +503,7 @@ class PerfomerUpdateViewTestCase(ViewBaseTestCase):
         data = {
             'performer_user': '2',
         }
-        with self.assertNumQueries(11):
+        with self.assertNumQueries(8):
             response = self.client.post('/perfomer_update/2/', data=data)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, '/task_detail/2/')
@@ -512,7 +512,7 @@ class PerfomerUpdateViewTestCase(ViewBaseTestCase):
         data = {
             'performer_user': '',
         }
-        with self.assertNumQueries(10):
+        with self.assertNumQueries(5):
             response = self.client.post('/perfomer_update/2/', data=data)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, '/task_detail/2/')

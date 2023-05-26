@@ -187,22 +187,23 @@ REST_FRAMEWORK = {
     ),
 }
 
-CACHES = {
-    'default': {
-        'BACKEND': "django_redis.cache.RedisCache",
-        'LOCATION': 'redis://redis:6379/1',
-    }
-}
-
-LOGGING = {
-    'version': 1,
-    'handlers': {
-        'console': {'class': 'logging.StreamHandler'}
-    },
-    'loggers': {
-        'django.db.backends': {
-            'handlers': ['console'],
-            'level': 'DEBUG'
+if 'test' not in sys.argv:
+    CACHES = {
+        'default': {
+            'BACKEND': "django_redis.cache.RedisCache",
+            'LOCATION': 'redis://redis:6379/1',
         }
     }
-}
+
+    LOGGING = {
+        'version': 1,
+        'handlers': {
+            'console': {'class': 'logging.StreamHandler'}
+        },
+        'loggers': {
+            'django.db.backends': {
+                'handlers': ['console'],
+                'level': 'DEBUG'
+            }
+        }
+    }
