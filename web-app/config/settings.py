@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'django_filters',
-
+    'cachalot',
     'django_celery_beat',
     # 'silk',
 
@@ -185,4 +185,24 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': (
         'django_filters.rest_framework.DjangoFilterBackend',
     ),
+}
+
+CACHES = {
+    'default': {
+        'BACKEND': "django_redis.cache.RedisCache",
+        'LOCATION': 'redis://redis:6379/1',
+    }
+}
+
+LOGGING = {
+    'version': 1,
+    'handlers': {
+        'console': {'class': 'logging.StreamHandler'}
+    },
+    'loggers': {
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'DEBUG'
+        }
+    }
 }
